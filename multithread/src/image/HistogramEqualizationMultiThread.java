@@ -1,12 +1,13 @@
 package image;
 
+
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.swing.*;
 
 public class HistogramEqualizationMultiThread {
 
@@ -19,12 +20,45 @@ public class HistogramEqualizationMultiThread {
             BufferedImage grayImage = convertToGrayscale(image);
 
             // Equalize histogram using multi-threaded implementation
-            int numOfThreads = 4; // Number of threads to use
-            BufferedImage equalizedImage = equalizeHistogramMultiThread(grayImage, numOfThreads);
+            int numOfTests = 3; // Number of test cases
+            int[] numOfThreadsValues = {1, 2, 4}; // Number of threads to use in each test case
 
-            // Display/save image
-            displayImage(equalizedImage);
-            saveImage(equalizedImage, "equalized_multi_thread.jpg");
+            long[][] executionTimes = new long[numOfTests][numOfThreadsValues.length];
+
+            for (int i = 0; i < numOfTests; i++) {
+                for (int j = 0; j < numOfThreadsValues.length; j++) {
+                    int numOfThreads = numOfThreadsValues[j];
+
+                    long startTime = System.nanoTime();
+                    BufferedImage equalizedImage = equalizeHistogramMultiThread(grayImage, numOfThreads);
+                    long endTime = System.nanoTime();
+
+                    long executionTime = endTime - startTime;
+                    executionTimes[i][j] = executionTime;
+
+                    // Display/save image
+                    displayImage(equalizedImage);
+                    saveImage(equalizedImage, "equalized_multi_thread_" + numOfThreads + ".jpg");
+                }
+            }
+
+            // Calculate average execution times
+            long[] averageExecutionTimes = new long[numOfThreadsValues.length];
+            for (int j = 0; j < numOfThreadsValues.length; j++) {
+                long sum = 0;
+                for (int i = 0; i < numOfTests; i++) {
+                    sum += executionTimes[i][j];
+                }
+                averageExecutionTimes[j] = sum / numOfTests;
+            }
+
+            // Print average execution times
+            for (int j = 0; j < numOfThreadsValues.length; j++) {
+                System.out.println("Average Execution Time for " + numOfThreadsValues[j] + " Threads: "
+                        + averageExecutionTimes[j] + " nanoseconds");
+            }
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
